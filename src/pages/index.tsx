@@ -1,9 +1,140 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import styles from "../styles/Home.module.css";
 
-const inter = Inter({ subsets: ['latin'] })
+import Head from "next/head";
+import { useState } from "react";
+
+type SearchResult = {
+  answer: string;
+  stories: { publication: string; headline: string; href: string }[];
+};
+
+const Search: React.FC = () => {
+  const [query, setQuery] = useState("");
+  // execute searches
+  const [searching, setSearching] = useState(false);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  async function doSearch() {
+    try {
+      setSearching(true);
+      setResult(null);
+      const resp = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+      const data = (await resp.json()) as SearchResult;
+      setSearching(false);
+      setResult(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  return (
+    <div
+      style={{
+        marginTop: "0px",
+        maxWidth: "100%",
+        position: "relative",
+        width: "420px",
+        zIndex: 9000,
+      }}
+    >
+      <textarea
+        value={query}
+        placeholder="Onko Putinista tehty etsintäkuulutus?"
+        onChange={(event) => {
+          setQuery(event.target.value);
+        }}
+        onKeyDown={(event) => {
+          if (event.code === "Enter") {
+            event.preventDefault();
+            void doSearch();
+          }
+        }}
+        style={{
+          background: "hsl(0, 0%, 100%, 0.24)",
+          border: "2px solid hsl(0, 0%, 100%, 0.64)",
+          borderRadius: "8px",
+          color: "white",
+          fontFamily: "inherit",
+          fontSize: "1rem",
+          height: "96px",
+          padding: "8px",
+          resize: "none",
+          width: "100%",
+        }}
+      />
+      {result ? (
+        <div>
+          <div
+            style={{
+              background: "hsl(0, 0%, 100%, 0.24)",
+              border: "2px solid hsl(0, 0%, 100%, 0.08)",
+              borderRadius: "8px",
+              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "1rem",
+              gap: "6px",
+              marginTop: "24px",
+              padding: "12px",
+              width: "100%",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                opacity: 0.5,
+                textTransform: "uppercase",
+              }}
+            >
+              Bot
+            </span>
+            <span>{result.answer}</span>
+          </div>
+          <ol
+            style={{
+              background: "hsl(0, 0%, 100%, 0.24)",
+              border: "2px solid hsl(0, 0%, 100%, 0.08)",
+              borderRadius: "8px",
+              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "1rem",
+              gap: "20px",
+              listStyle: "none",
+              margin: "24px 0px 0px 0px",
+              padding: "12px",
+              width: "100%",
+            }}
+          >
+            {result.stories.map((story) => (
+              <li
+                key={story.href}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.8rem",
+                    fontWeight: 500,
+                    opacity: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Story
+                </span>
+                <a href={story.href} target="_blank">
+                  {story.headline}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 export default function Home() {
   return (
@@ -15,109 +146,14 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
         <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
+          <span style={{ fontSize: "3.6rem", fontWeight: 500 }}>NewsGPT</span>
           <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
+            <span style={{ fontSize: "2.4rem", fontWeight: 500 }}>AI</span>
           </div>
         </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+        <Search />
       </main>
     </>
-  )
+  );
 }
