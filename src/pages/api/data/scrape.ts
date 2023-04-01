@@ -1,10 +1,10 @@
+import { PromisePool } from "@supercharge/promise-pool";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 import type { PersistentDataSource } from "../../../data";
 import { NewsStoryDataSource } from "../../../data/types";
 import { getGlobals } from "../../../globals";
 import { sleep } from "../../../util";
-import { PromisePool } from "@supercharge/promise-pool";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
 
 function makeLatestScraper(newsStories: NewsStoryDataSource, storage: PersistentDataSource) {
   return async (publication: string, limit: number) => {
@@ -41,7 +41,11 @@ function makeLatestScraper(newsStories: NewsStoryDataSource, storage: Persistent
               await sleep(500);
               continue;
             }
-            throw error;
+            // this story could not be scraped, log the error and continue
+            if (error instanceof Error) {
+              console.log(error.message);
+            }
+            break;
           }
         }
       });

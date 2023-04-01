@@ -134,7 +134,7 @@ async function generateAnswer(openAIKey: string, query: string, sources: Source[
       stream: true,
       n: 1,
       // FIXME: the params do not accept the max_tokens directly for whatever reason
-      ...{ max_tokens: 512 },
+      ...{ max_tokens: 256 },
     },
     { apiKey: openAIKey }
   );
