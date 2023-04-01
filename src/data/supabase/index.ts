@@ -179,6 +179,7 @@ export function makeSupabaseDataSource(connectionString: string): PersistentData
             id: r.story_chunk_id,
             index: r.story_chunk_index,
             publication: r.story_publication,
+            publishedAt: new Date(r.story_published_at),
             storyId: r.story_story_id,
             version: r.story_chunk_version,
           })
@@ -202,6 +203,7 @@ export function makeSupabaseDataSource(connectionString: string): PersistentData
         id: first.story_chunk_id,
         index: first.story_chunk_index,
         publication: first.story_publication,
+        publishedAt: new Date(first.story_published_at),
         storyId: first.story_story_id,
         version: first.story_chunk_version,
       } satisfies NewsStoryChunk;

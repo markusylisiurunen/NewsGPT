@@ -24,6 +24,7 @@
     "next": "13.2.4",
     "node-fetch": "^2.6.9",
     "openai": "^3.2.1",
+    "openai-streams": "^4.2.0",
     "pg": "^8.10.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",

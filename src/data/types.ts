@@ -46,6 +46,7 @@ export const NewsStoryChunk = z.object({
   id: z.string(),
   index: z.number(),
   publication: z.string(),
+  publishedAt: z.instanceof(Date),
   storyId: z.string(),
   version: z.number(),
 });

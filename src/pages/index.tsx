@@ -1,30 +1,58 @@
 import styles from "../styles/Home.module.css";
 
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-type SearchResult = {
-  answer: string;
-  stories: { publication: string; headline: string; href: string }[];
-};
+function useCompletion(query: string) {
+  const [writing, setWriting] = useState<boolean>(false);
+  const [answer, setAnswer] = useState<string | null>(null);
+  useEffect(() => {
+    if (query.length === 0) return;
+    let done = false;
+    async function getCompletion(query: string) {
+      setWriting(true);
+      setAnswer(null);
+      try {
+        const resp = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+        if (!resp.ok) {
+          throw new Error(resp.statusText);
+        }
+        const data = resp.body;
+        if (!data) {
+          throw new Error("expected the response data to be defined");
+        }
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let [_answer, _done] = ["", false];
+        while (!_done) {
+          if (done) return;
+          const chunk = await reader.read();
+          _done = chunk.done;
+          const text = decoder.decode(chunk.value);
+          _answer += text;
+          setAnswer(_answer);
+        }
+      } catch (error) {
+        console.log(error);
+        setAnswer(null);
+      } finally {
+        setWriting(false);
+      }
+    }
+    void getCompletion(query);
+    return () => {
+      done = true;
+      setWriting(false);
+      setAnswer(null);
+    };
+  }, [query]);
+  return { writing, answer };
+}
 
 const Search: React.FC = () => {
+  const [inputValue, setInputValue] = useState("");
   const [query, setQuery] = useState("");
-  // execute searches
-  const [searching, setSearching] = useState(false);
-  const [result, setResult] = useState<SearchResult | null>(null);
-  async function doSearch() {
-    try {
-      setSearching(true);
-      setResult(null);
-      const resp = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
-      const data = (await resp.json()) as SearchResult;
-      setSearching(false);
-      setResult(data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  const { writing, answer } = useCompletion(query);
   return (
     <div
       style={{
@@ -36,15 +64,15 @@ const Search: React.FC = () => {
       }}
     >
       <textarea
-        value={query}
+        value={inputValue}
         placeholder="Onko Putinista tehty etsintäkuulutus?"
         onChange={(event) => {
-          setQuery(event.target.value);
+          setInputValue(event.target.value);
         }}
         onKeyDown={(event) => {
           if (event.code === "Enter") {
             event.preventDefault();
-            void doSearch();
+            setQuery(inputValue);
           }
         }}
         style={{
@@ -54,13 +82,13 @@ const Search: React.FC = () => {
           color: "white",
           fontFamily: "inherit",
           fontSize: "1rem",
-          height: "96px",
+          height: "256px",
           padding: "8px",
           resize: "none",
           width: "100%",
         }}
       />
-      {result ? (
+      {writing || answer ? (
         <div>
           <div
             style={{
@@ -87,49 +115,22 @@ const Search: React.FC = () => {
             >
               Bot
             </span>
-            <span>{result.answer}</span>
-          </div>
-          <ol
-            style={{
-              background: "hsl(0, 0%, 100%, 0.24)",
-              border: "2px solid hsl(0, 0%, 100%, 0.08)",
-              borderRadius: "8px",
-              color: "white",
-              display: "flex",
-              flexDirection: "column",
-              fontSize: "1rem",
-              gap: "20px",
-              listStyle: "none",
-              margin: "24px 0px 0px 0px",
-              padding: "12px",
-              width: "100%",
-            }}
-          >
-            {result.stories.map((story) => (
-              <li
-                key={story.href}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                }}
-              >
+            <span>
+              {answer}
+              {writing ? (
                 <span
                   style={{
-                    fontSize: "0.8rem",
-                    fontWeight: 500,
-                    opacity: 0.5,
-                    textTransform: "uppercase",
+                    background: "white",
+                    display: "inline-block",
+                    height: "18px",
+                    marginBottom: "-3px",
+                    marginLeft: "4px",
+                    width: "8px",
                   }}
-                >
-                  Story
-                </span>
-                <a href={story.href} target="_blank">
-                  {story.headline}
-                </a>
-              </li>
-            ))}
-          </ol>
+                />
+              ) : null}
+            </span>
+          </div>
         </div>
       ) : null}
     </div>
