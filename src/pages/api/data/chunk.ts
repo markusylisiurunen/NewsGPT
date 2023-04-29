@@ -14,7 +14,7 @@ function makeChunker(storage: PersistentDataSource) {
       .withConcurrency(8)
       .process(async (storyId) => {
         // fetch the content from the database
-        const { content } = await storage.findStoryById(publication, storyId);
+        const { publishedAt, content } = await storage.findStoryById(publication, storyId);
         // chunk the content
         const chunks: NewsStoryContentBlock[][] = [];
         let currentChunk: NewsStoryContentBlock[] = [];
@@ -37,6 +37,7 @@ function makeChunker(storage: PersistentDataSource) {
             content: chunks[chunkIndex],
             embedding: null,
             index: chunkIndex,
+            publishedAt: publishedAt,
             publication: publication,
             storyId: storyId,
             version: version,

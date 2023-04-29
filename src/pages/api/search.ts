@@ -58,7 +58,7 @@ type Source = {
 
 async function generateAnswer(openAIKey: string, query: string, sources: Source[]) {
   // 1 token ~= 3/4 words --> the context limit is 4,096 tokens --> limit the context to 1024 tokens = 768 words
-  const maxWords = 768;
+  const maxWords = 512;
   let currentWords = 0;
   let _sources: Source[] = [];
   for (const source of sources) {
@@ -86,7 +86,7 @@ async function generateAnswer(openAIKey: string, query: string, sources: Source[
         paragraph(
           `Use 1-3 sentences to answer the user's question.`,
           `Cite the sources you use in your answer.`,
-          `The sources are provided with lines starting "[<index> <url>]".`,
+          `The sources are provided with lines starting "[<index> <url> <published date>]".`,
           `To cite a source, write "[<index>](<url>)".`,
           `Do not mix the information between different sources, they are from different news articles.`,
           `Prefer recent sources as they reflect the current situation better.`,
@@ -96,10 +96,10 @@ async function generateAnswer(openAIKey: string, query: string, sources: Source[
         lines(`###`, `Current date: ${new Date().toISOString().slice(0, 10)}`),
         lines(
           `### Example 1:`,
-          `[1: https://hs.fi/u0c34] (published: 2018-12-01): ${paragraph(
+          `[1 https://hs.fi/u0c34 2018-12-01]: ${paragraph(
             `OP:n mukaan sen henkilöasiakkaiden netto-ostoista 46 prosenttia kohdistui maaliskuussa Nordean osakkeeseen.`
           )}`,
-          `[2: https://hs.fi/c3um9] (published: ${new Date().toISOString().slice(0, 10)}}): ${paragraph(
+          `[2 https://hs.fi/c3um9 ${new Date().toISOString().slice(0, 10)}]: ${paragraph(
             `Nordean ennätyksellinen 80 sentin osinko irtosi maaliskuun loppupuolella, jolloin kurssilaskun ansiosta osinkotuottoprosentiksi muodostui 8 prosenttia.`
           )}`,
           `Q: "Onko Nordean osake suosittu? Paljonko se tuottaa osinkoja?"`,
@@ -113,7 +113,7 @@ async function generateAnswer(openAIKey: string, query: string, sources: Source[
           `###`,
           ..._sources.map(
             (s, i) =>
-              `[${i + 1}: ${s.url}] (published: ${s.published.toISOString().slice(0, 10)}): ${s.content
+              `[${i + 1} ${s.url} ${s.published.toISOString().slice(0, 10)}]: ${s.content
                 .map((b) => b.text.replaceAll("\n", " "))
                 .join(" ")}`
           ),
